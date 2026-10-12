@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-// Dynamically check localStorage first, then environment variable, then localhost
+// Dynamically check localStorage first, then environment variable, then live Cloudflare HTTPS backend
 export const getBaseUrl = () => {
   const saved = localStorage.getItem('CUSTOM_API_URL');
   if (saved && saved.trim()) {
     let clean = saved.trim().replace(/\/+$/, '');
     return clean.endsWith('/api') ? clean : `${clean}/api`;
   }
-  return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+  return process.env.REACT_APP_API_URL || 'https://time-fails-sea-keeps.trycloudflare.com/api';
 };
 
 export const setCustomApiUrl = (url) => {
