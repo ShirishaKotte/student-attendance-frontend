@@ -1,39 +1,61 @@
 import React, { useState } from 'react';
 import { loginUser } from '../services/api';
 
-function Login({ onLoginSuccess, onSwitchToRegister }) {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  function Login({ onLoginSuccess, onSwitchToRegister, onOpenConfig }) {
+    const [formData, setFormData] = useState({
+      username: '',
+      password: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
+    const handleChange = (e) => {
+      setFormData(prev => ({
+        ...prev,
+        [e.target.name]: e.target.value
+      }));
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      setError('');
 
-    try {
-      const res = await loginUser(formData);
-      onLoginSuccess(res.data);
-    } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Login failed. Please check your credentials or backend server.');
+      try {
+        const res = await loginUser(formData);
+        onLoginSuccess(res.data);
+      } catch (err) {
+        if (err.response && err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else if (!err.response) {
+          setError(
+            <span>
+              Cannot connect to backend server. If using cloud deployment, please{' '}
+              <button
+                type="button"
+                onClick={onOpenConfig}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#2563eb',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  padding: 0
+                }}
+              >
+                configure your Render backend URL
+              </button>
+              .
+            </span>
+          );
+        } else {
+          setError('Login failed. Please check your credentials or backend server.');
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   const handleFillDemo = (role) => {
     if (role === 'FACULTY') {

@@ -1,13 +1,38 @@
 import axios from 'axios';
 
-// Automatically uses environment variable on deployment (e.g. Render/Vercel) or defaults to local backend
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// Dynamically check localStorage first, then environment variable, then localhost
+export const getBaseUrl = () => {
+  const saved = localStorage.getItem('CUSTOM_API_URL');
+  if (saved && saved.trim()) {
+    let clean = saved.trim().replace(/\/+$/, '');
+    return clean.endsWith('/api') ? clean : `${clean}/api`;
+  }
+  return process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+};
+
+export const setCustomApiUrl = (url) => {
+  if (!url || !url.trim()) {
+    localStorage.removeItem('CUSTOM_API_URL');
+  } else {
+    let clean = url.trim().replace(/\/+$/, '');
+    if (!clean.endsWith('/api')) {
+      clean = `${clean}/api`;
+    }
+    localStorage.setItem('CUSTOM_API_URL', clean);
+  }
+};
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
+});
+
+// Ensure every request uses the most up-to-date base URL
+apiClient.interceptors.request.use((config) => {
+  config.baseURL = getBaseUrl();
+  return config;
 });
 
 // Authentication APIs (Login & Register)

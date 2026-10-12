@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { registerUser } from '../services/api';
 
-function Register({ onRegisterSuccess, onSwitchToLogin }) {
+function Register({ onRegisterSuccess, onSwitchToLogin, onOpenConfig }) {
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
@@ -38,6 +38,28 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
+      } else if (!err.response) {
+        setError(
+          <span>
+            Cannot connect to backend server. If using cloud deployment, please{' '}
+            <button
+              type="button"
+              onClick={onOpenConfig}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#2563eb',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                padding: 0
+              }}
+            >
+              configure your Render backend URL
+            </button>
+            .
+          </span>
+        );
       } else {
         setError('Registration failed. Username or Roll Number may already exist.');
       }

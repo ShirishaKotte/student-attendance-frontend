@@ -6,6 +6,7 @@ import StudentPortal from './components/StudentPortal';
 import MarkAttendance from './components/MarkAttendance';
 import AttendanceDashboard from './components/AttendanceDashboard';
 import StudentList from './components/StudentList';
+import { getBaseUrl, setCustomApiUrl } from './services/api';
 import './App.css';
 
 function App() {
@@ -16,6 +17,9 @@ function App() {
 
   const [authView, setAuthView] = useState('login'); // 'login' or 'register'
   const [activeTab, setActiveTab] = useState('mark'); // Default faculty view: mark attendance
+  const [showConfig, setShowConfig] = useState(false);
+  const [inputUrl, setInputUrl] = useState(getBaseUrl());
+  const [currentBaseUrl, setCurrentBaseUrl] = useState(getBaseUrl());
 
   useEffect(() => {
     if (user) {
@@ -39,10 +43,111 @@ function App() {
     setAuthView('login');
   };
 
+  const handleSaveApiUrl = (e) => {
+    e.preventDefault();
+    setCustomApiUrl(inputUrl);
+    setCurrentBaseUrl(getBaseUrl());
+    setShowConfig(false);
+    window.location.reload();
+  };
+
+  const handleResetApiUrl = () => {
+    setCustomApiUrl('');
+    setCurrentBaseUrl(getBaseUrl());
+    setInputUrl(getBaseUrl());
+    setShowConfig(false);
+    window.location.reload();
+  };
+
+  const serverBar = (
+    <div style={{
+      backgroundColor: '#0f172a',
+      color: '#cbd5e1',
+      padding: '8px 16px',
+      fontSize: '12px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '12px',
+      borderBottom: '1px solid #1e293b'
+    }}>
+      <span>
+        🔌 Backend API: <strong style={{ color: '#38bdf8' }}>{currentBaseUrl}</strong>
+      </span>
+      <button
+        onClick={() => setShowConfig(!showConfig)}
+        style={{
+          background: '#334155',
+          color: '#fff',
+          border: 'none',
+          padding: '3px 8px',
+          borderRadius: '4px',
+          fontSize: '11px',
+          cursor: 'pointer'
+        }}
+      >
+        {showConfig ? 'Close' : '⚙️ Configure Backend URL'}
+      </button>
+
+      {showConfig && (
+        <form onSubmit={handleSaveApiUrl} style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%', justifyContent: 'center', marginTop: '6px' }}>
+          <input
+            type="text"
+            value={inputUrl}
+            onChange={(e) => setInputUrl(e.target.value)}
+            placeholder="e.g. https://student-attendance-backend-xxxx.onrender.com"
+            style={{
+              padding: '4px 10px',
+              borderRadius: '4px',
+              border: '1px solid #475569',
+              background: '#1e293b',
+              color: '#fff',
+              fontSize: '12px',
+              width: '380px',
+              maxWidth: '90%'
+            }}
+          />
+          <button
+            type="submit"
+            style={{
+              background: '#2563eb',
+              color: '#fff',
+              border: 'none',
+              padding: '4px 10px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              cursor: 'pointer',
+              fontWeight: '600'
+            }}
+          >
+            Connect
+          </button>
+          <button
+            type="button"
+            onClick={handleResetApiUrl}
+            style={{
+              background: '#dc2626',
+              color: '#fff',
+              border: 'none',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              cursor: 'pointer'
+            }}
+          >
+            Reset
+          </button>
+        </form>
+      )}
+    </div>
+  );
+
   // If user is not logged in, display Login or Register screens
   if (!user) {
     return (
       <div className="app-container">
+        {serverBar}
         <header style={{
           backgroundColor: '#1e293b',
           color: '#ffffff',
@@ -63,11 +168,13 @@ function App() {
             <Login
               onLoginSuccess={handleLoginSuccess}
               onSwitchToRegister={() => setAuthView('register')}
+              onOpenConfig={() => setShowConfig(true)}
             />
           ) : (
             <Register
               onRegisterSuccess={() => setAuthView('login')}
               onSwitchToLogin={() => setAuthView('login')}
+              onOpenConfig={() => setShowConfig(true)}
             />
           )}
         </main>
@@ -82,6 +189,7 @@ function App() {
   // If user is logged in
   return (
     <div className="app-container">
+      {serverBar}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
